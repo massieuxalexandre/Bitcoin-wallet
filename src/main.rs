@@ -1,6 +1,7 @@
 use std::io;
-
 mod wallet;
+mod bip39;
+mod bip32;
 use crate::wallet::Wallet;
 
 fn main() {
@@ -8,6 +9,7 @@ fn main() {
     
     println!("1. Generate a seed");
     println!("2. import a seed");
+    println!("> ");
     let mut seed_choice: String = String::new();
     io::stdin().read_line(&mut seed_choice).expect("Try again");
     println!();
@@ -17,5 +19,13 @@ fn main() {
     println!("{}", wallet.seed());
     println!();
 
+    println!("There are your master keys :");
+    println!();
+    println!("Master Private Key : {:#?}", wallet.master_private_key());
+    println!("Master Public Key : {:#?}", wallet.master_public_key());
+    println!();
+
+    println!("Let's derive some child keys from your master private key !");
+    wallet.generate_child_key(12, 30);
 
 }

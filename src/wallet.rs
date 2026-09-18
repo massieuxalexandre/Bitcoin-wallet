@@ -1,92 +1,55 @@
-use rand::{Rng, rngs::OsRng};
-use bip39::{Mnemonic, Language};
-use sha2::{Sha256, Digest};
-use bip32::{XPrv, ChildNumber, DerivationPath};
-use std::str::FromStr;
+use hmac::{Hmac, Mac};
+// use k256::SecretKey;
+// use k256::elliptic_curve::sec1::ToEncodedPoint;
+// use num_bigint::BigUint;
+// use std::str::FromStr;
 use std::io;
+use crate::bip39::Seed;
 
 pub struct Wallet{
-    master_private_key: u128,
-    seed: String,
-    master_public_key: u128
+    seed: Seed,
+    master_private_key: [u8; 32],
+    master_public_key: [u8; 32]
 }
 
 impl Wallet{
     pub fn new(seed_choice: String) -> Wallet{  
-        if seed_choice == "1"{
-            Wallet{
-                master_private_key: 0,
-                seed: Self::generate_seed(),
-                master_public_key: 0
-            }
+        let mut seed: Seed = if seed_choice == "1"{
+            println!("Generating a seed...");
+            println!();
+            Seed::new(seed_choice)
         }
         else if seed_choice == "2"{
-            Wallet{
-                master_private_key: 0,
-                seed: Self::import_seed(),
-                master_public_key: 0
-            }
+            println!("Enter your seed");
+            println!("> ");
+            let mut input_seed: String = String::new();
+            io::stdin().read_line(&mut input_seed).expect("Try again");
+            let input_seed: String = String::from(input_seed.trim());
+            println!();
+            Seed::new(seed_choice)
         }
         else{
             panic!("Please choose between 1 or 2");
-        }
+        };
+
+        let mnemonic = Mnemonic::parse(&phrase).unwrap();
+        let bytes = mnemonic.to_seed("");
+
+        let master_private = XPrv::new(&bytes).expect("Error while creating the Master Private Key");
+        let master_public = master_private.public_key();
+
+        Wallet{
+                master_private_key: master_private,
+                seed: seed,
+                master_public_key: master_public
+            }
     
               
     }
 
-    fn generate_seed() -> String{
-        println!("Generating a seed...");
-        println!();
-        let entropy: [u8; 16] = OsRng.r#gen();
-
-        println!("All representation of the seed :");
-        println!("Bytes representation : {:?}", entropy);
-        println!();
-        print!("Hex representation : ");
-        for byte in entropy{
-            print!("{:02x}", byte);
-        }
-        println!();
-        println!();
-
-        let mut hasher = Sha256::new();
-        hasher.update(entropy);
-        let hash = hasher.finalize();
-        let checksum = hash[0] >> 4;
-
-        let mut binary_string: String = String::new();
-        for byte in entropy{
-            binary_string.push_str(&format!("{:08b}", byte));
-        }
-        binary_string.push_str(&format!("{:04b}", checksum));
-        println!("Binary representation : {}", binary_string);
-
-        println!();
-        println!("Sets of 11 bits :");
-        let mut words_seed: Vec<String> = Vec::new();
-        let word_list: &[&str; 2048] = Language::English.word_list();
-        for i in(0..binary_string.len()).step_by(11){
-            let chunck = &binary_string[i..i+11];
-            let index = usize::from_str_radix(chunck, 2).unwrap();
-            let word = word_list[index];
-            print!("{} ", chunck);
-            
-            words_seed.push(String::from(word));
-        }
-        println!();
-        println!();
-
-
-        words_seed.join(" ")
-        
-    }
 
     fn import_seed() -> String{
-        println!("Enter your 12 words seed : ");
-        let mut input_seed: String = String::new();
-        io::stdin().read_line(&mut input_seed).expect("Try again");
-        let input_seed: String = String::from(input_seed.trim());
-        println!();
+
 
         match Mnemonic::parse(input_seed) {
             Ok(mnemonic) => {
@@ -101,9 +64,18 @@ impl Wallet{
 
 
 
-    pub fn seed(&self) -> &String{
-        &self.seed
-    }
+    // pub fn seed(&self) -> &Seed{
+    //     self.seed
+    // }
+
+    // pub fn master_private_key(&self) -> &XPrv{
+    //     &self.master_private_key
+    // }
+
+    // pub fn master_public_key(&self) -> &XPub{
+    //     &self.master_public_key
+    // }
+
 }
 
 
