@@ -1,38 +1,45 @@
 use rand::{Rng, rngs::OsRng};
-use bip39::{Mnemonic, Language};
+use bip39::Mnemonic;
 use sha2::{Sha256, Digest};
+use crate::utils::input;
 
 pub struct Seed{
     entropy: [u8; 16],
-    mut binary: String,
-    mut phrase: String
+    binary: String,
+    phrase: String
 }
 
 impl Seed{
-    pub fn new() -> Seed {
-        let seed: Seed = Seed{
-            entropy: OsRng.r#gen(),
-            binary: String::new(),
-            phrase: String::new()
-        };
-        seed.to_binary();
-        seed.to_phrase();
-        seed
+    pub fn new(seed_choice: String) -> Seed {
+        let mut entropy: [u8; 16];
+        let mut binary: String;
+        let mut phrase: String;
+        if seed_choice == "1" {
+            println!("Generating a seed...");
+            println!();
+            entropy = OsRng.r#gen();
+            binary = Self::entropy_to_binary(&entropy);
+            phrase = Self::binary_to_phrase(&binary);
+        }
+
+        else if seed_choice == "2" {
+            phrase = Self::import_seed();
+            binary = Self::phrase_to_binary(&phrase);
+            entropy = Self::binary_to_entropy(&binary);
+        }
+        else{
+            panic!("Please choose between 1 or 2");
+        }
+
+
+        Seed{
+            entropy: entropy,
+            binary: binary,
+            phrase: phrase
+        }
     }
 
-    // fn to_binary(&self) {
-    //     let mut hasher = Sha256::new();
-    //     hasher.update(self.entropy);
-    //     let hash = hasher.finalize();
-    //     let checksum = hash[0] >> 4;
-
-    //     let mut binary_string: String = String::new();
-    //     for byte in self.entropy{
-    //         binary_string.push_str(&format!("{:08b}", byte));
-    //     }
-    //     self.binary = binary_string.push_str(&format!("{:04b}", checksum));
-    // }
-    fn to_binary(entropy: [u8; 16]) -> String {
+    fn entropy_to_binary(entropy: &[u8; 16]) -> String {
         let mut hasher = Sha256::new();
         hasher.update(entropy);
         let hash = hasher.finalize();
@@ -46,21 +53,8 @@ impl Seed{
         binary_string
     }
 
-    // fn to_phrase(&self) {
-    //     let mut words: Vec<String> = Vec::new();
-    //     let english_txt = include_str!("english.txt");
-    //     let word_list: Vec<&str> = english_txt.lines().collect();
 
-    //     for i in(0..self.binary.len()).step_by(11){
-    //         let chunck = &self.binary[i..i+11];
-    //         let index = usize::from_str_radix(chunck, 2).unwrap();
-    //         let word = word_list[index];
-
-    //         words.push(String::from(word));
-    //     }
-    //     self.phrase = words.join(" ");
-    // }
-    fn to_phrase(binary: String) -> String {
+    fn binary_to_phrase(binary: &String) -> String {
         let mut words: Vec<String> = Vec::new();
         let english_txt = include_str!("english.txt");
         let word_list: Vec<&str> = english_txt.lines().collect();
@@ -75,7 +69,51 @@ impl Seed{
         words.join(" ")
     }
 
-    fn show_representations(&self) {
+    fn import_seed() -> String{
+        println!("Enter your seed phrase");
+        let user_seed: String = input();
+
+        match Mnemonic::parse(user_seed) {
+            Ok(mnemonic) => {
+                println!("Success ! The imported seed is valid");
+                mnemonic.to_string()
+            }
+            Err(error) => {
+                panic!("Invalid seed error : {}", error);
+            }
+        }
+    }
+
+    fn phrase_to_binary(phrase: &str) -> String {
+        let mut binary_string = String::new();
+        let english_txt = include_str!("english.txt");
+        let word_list: Vec<&str> = english_txt.lines().collect();
+
+        for word in phrase.split_whitespace() {
+            let index = word_list.iter().position(|&w| w == word).unwrap();
+            
+            binary_string.push_str(&format!("{:011b}", index));
+        }
+        
+        binary_string 
+    }
+
+    fn binary_to_entropy(binary: &str) -> [u8; 16] {
+        let mut entropy = [0u8; 16];
+
+        
+        for i in 0..16 {
+            let start = i * 8;
+            let end = start + 8;
+            let chunk = &binary[start..end];
+            
+            entropy[i] = u8::from_str_radix(chunk, 2).unwrap();
+        }
+
+        entropy
+    }
+
+    pub fn show_representations(&self) {
         println!("Hex representation : ");
         for byte in self.entropy{
             print!("{:02x}", byte);
@@ -85,12 +123,14 @@ impl Seed{
         println!("Binary representation : ");
         println!("{}", self.binary);
         println!();
-        println!();
 
         println!("Phrase representation : ");
         println!("{}", self.phrase);
         println!();
-        println!();
 
+    }
+
+    pub fn phrase(&self) -> &str {
+        &self.phrase
     }
 }

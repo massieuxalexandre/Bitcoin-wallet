@@ -1,4 +1,6 @@
-use std::io;
+
+mod utils;
+use crate::utils::input;
 mod wallet;
 mod bip39;
 mod bip32;
@@ -9,23 +11,21 @@ fn main() {
     
     println!("1. Generate a seed");
     println!("2. import a seed");
-    println!("> ");
-    let mut seed_choice: String = String::new();
-    io::stdin().read_line(&mut seed_choice).expect("Try again");
-    println!();
+    let seed_choice: String = input();
     
-    let wallet: Wallet = Wallet::new(String::from(seed_choice.trim()));
-    println!("Your wallet is created ! Please make sure you noted your phrase seed :");
-    println!("{}", wallet.seed());
+    let wallet: Wallet = Wallet::new(seed_choice);
+    println!("Your wallet is created ! There are all the representation of your seed");
+    println!("Make sure to save your seed phrase securely : ");
     println!();
+    wallet.seed().show_representations();
 
-    println!("There are your master keys :");
-    println!();
-    println!("Master Private Key : {:#?}", wallet.master_private_key());
-    println!("Master Public Key : {:#?}", wallet.master_public_key());
-    println!();
+    // println!("There are your master keys :");
+    // println!();
+    // println!("Master Private Key : {:#?}", wallet.master_private_key());
+    // println!("Master Public Key : {:#?}", wallet.master_public_key());
+    // println!();
 
-    println!("Let's derive some child keys from your master private key !");
-    wallet.generate_child_key(12, 30);
+    // println!("Let's derive some child keys from your master private key !");
+    // wallet.generate_child_key(12, 30);
 
 }
