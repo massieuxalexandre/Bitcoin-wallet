@@ -11,3 +11,13 @@ pub fn input() -> String{
     String::from(input.trim())
 
 }
+
+pub fn valid_input(range: u8, input: &String) -> bool {
+    let mut choices: Vec<String> = Vec::new();
+    for i in 1..=range {
+        choices.push(i.to_string());
+    }
+
+    choices.contains(&input)
+
+}

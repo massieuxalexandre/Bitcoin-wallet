@@ -1,12 +1,13 @@
 use rand::{Rng, rngs::OsRng};
 use bip39::Mnemonic;
 use sha2::{Sha256, Digest};
-use crate::utils::input;
+use crate::utils::{input};
 
 pub struct Seed{
     entropy: [u8; 16],
     binary: String,
-    phrase: String
+    phrase: String,
+    bytes: [u8; 64]
 }
 
 impl Seed{
@@ -14,18 +15,21 @@ impl Seed{
         let mut entropy: [u8; 16];
         let mut binary: String;
         let mut phrase: String;
+        let mut bytes: [u8; 64];
         if seed_choice == "1" {
             println!("Generating a seed...");
             println!();
             entropy = OsRng.r#gen();
             binary = Self::entropy_to_binary(&entropy);
             phrase = Self::binary_to_phrase(&binary);
+            bytes = Self::phrase_to_bytes(&phrase);
         }
 
         else if seed_choice == "2" {
             phrase = Self::import_seed();
             binary = Self::phrase_to_binary(&phrase);
             entropy = Self::binary_to_entropy(&binary);
+            bytes = Self::phrase_to_bytes(&phrase);
         }
         else{
             panic!("Please choose between 1 or 2");
@@ -35,7 +39,8 @@ impl Seed{
         Seed{
             entropy: entropy,
             binary: binary,
-            phrase: phrase
+            phrase: phrase,
+            bytes: bytes
         }
     }
 
@@ -98,6 +103,16 @@ impl Seed{
         binary_string 
     }
 
+    fn phrase_to_bytes(phrase: &String) -> [u8; 64]{
+        let mnemonic = Mnemonic::parse(phrase).unwrap();
+        let seed_bytes_vec = mnemonic.to_seed("");
+        
+        // 2. On les copie dans un beau tableau fixe de 64 octets
+        let mut bytes = [0u8; 64];
+        bytes.copy_from_slice(&seed_bytes_vec);
+        bytes
+    }
+
     fn binary_to_entropy(binary: &str) -> [u8; 16] {
         let mut entropy = [0u8; 16];
 
@@ -120,8 +135,13 @@ impl Seed{
         }
         println!();
         println!();
+
         println!("Binary representation : ");
         println!("{}", self.binary);
+        println!();
+
+        println!("Bytes representation : ");
+        println!("{:02x?}", self.bytes);
         println!();
 
         println!("Phrase representation : ");
@@ -130,7 +150,11 @@ impl Seed{
 
     }
 
-    pub fn phrase(&self) -> &str {
+    pub fn bytes(&self) -> &[u8; 64] {
+        &self.bytes
+    }
+
+    pub fn phrase(&self) -> &String {
         &self.phrase
     }
 }
