@@ -12,10 +12,10 @@ pub struct Seed{
 
 impl Seed{
     pub fn new(seed_choice: String) -> Seed {
-        let mut entropy: [u8; 16];
-        let mut binary: String;
-        let mut phrase: String;
-        let mut bytes: [u8; 64];
+        let entropy: [u8; 16];
+        let binary: String;
+        let phrase: String;
+        let bytes: [u8; 64];
         if seed_choice == "1" {
             println!("Generating a seed...");
             println!();
@@ -129,22 +129,25 @@ impl Seed{
     }
 
     pub fn show_representations(&self) {
-        println!("Hex representation : ");
+        print!("Hex representation : ");
         for byte in self.entropy{
             print!("{:02x}", byte);
         }
         println!();
         println!();
 
-        println!("Binary representation : ");
+        print!("Binary representation : ");
         println!("{}", self.binary);
         println!();
 
-        println!("Bytes representation : ");
-        println!("{:02x?}", self.bytes);
+        print!("Bytes representation : ");
+        for byte in self.bytes {
+            print!("{:02x}", byte);
+        }
+        println!();
         println!();
 
-        println!("Phrase representation : ");
+        print!("Phrase representation : ");
         println!("{}", self.phrase);
         println!();
 

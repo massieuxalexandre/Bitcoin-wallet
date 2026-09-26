@@ -1,9 +1,8 @@
 mod utils;
 mod wallet;
-mod bip39;
-mod bip32;
+mod seed;
 
-use crate::utils::{input, valid_input};
+use crate::utils::{input, valid_input, menu};
 use crate::wallet::Wallet;
 
 fn main() {
@@ -18,18 +17,46 @@ fn main() {
     }
     
     let wallet: Wallet = Wallet::new(seed_choice);
-    println!("Your wallet is created ! There are all the representation of your seed");
-    println!("Make sure to save your seed phrase securely : ");
-    println!();
-    wallet.seed().show_representations();
-
-    println!("There are your master keys :");
-    println!();
-    println!("Master Private Key : {:02x?}", wallet.master_private_key());
-    println!("Master Public Key : {:02x?}", wallet.master_public_key());
+    println!("Your wallet is created !");
+    println!("Make sure to save your seed phrase securely : {}", wallet.seed().phrase());
     println!();
 
-    // println!("Let's derive some child keys from your master private key !");
-    // wallet.generate_child_key(12, 30);
+
+    let mut stop: bool = false;
+    while stop == false {
+        println!("Press ENTER to continue");
+        let _continue: String = input();
+
+        menu();
+        let mut menu_choice: String = input();
+        while valid_input(7, &menu_choice) == false {
+            println!("Please choose from 1 to 7");
+            menu_choice = input();
+        }
+
+
+        if menu_choice == "1" {
+            wallet.seed().show_representations();
+        }
+        
+        else if menu_choice == "2" {
+            wallet.master_private_key();
+        }
+
+        else if menu_choice == "3" {
+            wallet.master_public_key();
+        }
+
+        else if menu_choice == "4" {
+            wallet.master_chain_code();
+        }
+
+        // 
+
+        else if menu_choice == "7" {
+            stop = true;
+        }
+    }
+
 
 }
