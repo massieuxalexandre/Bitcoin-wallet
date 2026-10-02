@@ -12,6 +12,12 @@ pub fn input() -> String{
 
 }
 
+pub fn next() {
+    println!("Press ENTER to continue");
+    let mut next: String = String::new();
+    io::stdin().read_line(&mut next).expect("Try again");
+}
+
 pub fn valid_input(range: u8, input: &String) -> bool {
     let mut choices: Vec<String> = Vec::new();
     for i in 1..=range {
@@ -28,7 +34,7 @@ pub fn menu(){
     println!("2. Show master private key");
     println!("3. Show master public key");
     println!("4. Show master chain code");
-    println!("5. Derive");
-    println!("6. Derive");
+    println!("5. Generate a child key at index N");
+    println!("6. Generate a child key at index N at derivation level M");
     println!("7. Quit");
 }

@@ -2,7 +2,7 @@ mod utils;
 mod wallet;
 mod seed;
 
-use crate::utils::{input, valid_input, menu};
+use crate::utils::{input, valid_input, menu, next};
 use crate::wallet::Wallet;
 
 fn main() {
@@ -24,8 +24,7 @@ fn main() {
 
     let mut stop: bool = false;
     while stop == false {
-        println!("Press ENTER to continue");
-        let _continue: String = input();
+        next();
 
         menu();
         let mut menu_choice: String = input();
@@ -51,7 +50,13 @@ fn main() {
             wallet.master_chain_code();
         }
 
-        // 
+        else if menu_choice == "5" {
+            wallet.derive();
+        }
+
+        else if menu_choice == "6" {
+            wallet.derive_level_m();
+        }
 
         else if menu_choice == "7" {
             stop = true;
